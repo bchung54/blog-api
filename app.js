@@ -3,19 +3,29 @@ import express from 'express';
 import path from 'path';
 import cookieParser from 'cookie-parser';
 import logger from 'morgan';
+import cors from 'cors';
+import passport from 'passport';
 
-import fileDirName from './utils/file-dir-name.js';
-const { __dirname, __filename } = fileDirName(import.meta);
+import fileDirName from './utils/fileDirName.js';
 
-import { default as indexRouter } from './routes/index.js';
-import { default as apiRouter } from './routes/api.js';
+import indexRouter from './routes/index.js';
+import apiRouter from './routes/api.js';
 
+import './config/database.js';
+import passportConfig from './config/passport.js';
+import 'dotenv/config';
+// import './utils/generateKeypair.js';
+
+const { __dirname } = fileDirName(import.meta);
 const app = express();
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
 app.set('view engine', 'ejs');
 
+passportConfig(passport);
+
+app.use(passport.initialize());
 app.use(logger('dev'));
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));

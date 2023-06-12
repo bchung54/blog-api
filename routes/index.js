@@ -1,4 +1,5 @@
 import { Router } from 'express';
+import passport from 'passport';
 import * as authController from '../controllers/authController.js';
 const router = Router();
 
@@ -6,6 +7,12 @@ const router = Router();
 router.get('/', function (req, res, next) {
   res.render('index', { title: 'Express' });
 });
+
+router.get(
+  '/protected',
+  passport.authenticate('jwt', { session: false }),
+  authController.protectedRoute
+);
 
 router.post('/signup', authController.signup);
 

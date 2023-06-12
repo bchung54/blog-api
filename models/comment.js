@@ -4,7 +4,7 @@ const Schema = mongoose.Schema;
 
 const CommentSchema = new Schema(
   {
-    post: { type: Schema.Types.ObjectId, ref: 'Post', required: true },
+    postId: { type: Schema.Types.ObjectId, ref: 'Post', required: true },
     author: { type: String, required: true, maxLength: 99 },
     email: { type: String, required: true },
     content: { type: String, required: true },
