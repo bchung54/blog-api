@@ -1,6 +1,5 @@
 import User from '../models/user.js';
 import bcrypt from 'bcryptjs';
-import passport from 'passport';
 import { body, validationResult } from 'express-validator';
 import fs from 'fs';
 import path from 'path';
@@ -97,23 +96,25 @@ export const signup = [
 ];
 
 // POST '/login'
-export const login = asyncHandler(async (req, res, next) => {
-  passport.authenticate('local', { session: false }, (err, user, info) => {
-    if (err || !user) {
-      return res.status(403).json({ info });
-    }
+export const login = (req, res, next) => {
+  if (!req.user) {
+    return res.status(403).json({ info });
+  }
 
-    req.login(user, { session: false });
+  req.login(req.user, { session: false });
 
-    const body = { _id: user._id, username: user.username };
-    const token = jwt.sign({ user: body }, PRIV_KEY, {
-      algorithm: 'RS256',
-      expiresIn: '1d',
-    });
+  const body = {
+    _id: req.user._id,
+    username: req.user.username,
+    name: req.user.name,
+  };
+  const token = jwt.sign({ user: body }, PRIV_KEY, {
+    algorithm: 'RS256',
+    expiresIn: '1d',
+  });
 
-    return res.status(200).json({ body, token });
-  })(req, res, next);
-});
+  return res.status(200).json({ body, token });
+};
 
 // GET '/logout'
 export const logout = asyncHandler(async (req, res, next) => {

@@ -16,7 +16,11 @@ router.get(
 
 router.post('/signup', authController.signup);
 
-router.post('/login', authController.login);
+router.post(
+  '/login',
+  passport.authenticate('local', { session: false }),
+  authController.login
+);
 
 router.get('/logout', authController.logout);
 

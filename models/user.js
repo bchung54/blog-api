@@ -13,4 +13,8 @@ UserSchema.virtual('url').get(function () {
   return `/users/${this._id}`;
 });
 
+UserSchema.virtual('json').get(function () {
+  return this.toJSON();
+});
+
 export default mongoose.model('User', UserSchema);

@@ -5,7 +5,7 @@ const Schema = mongoose.Schema;
 const PostSchema = new Schema(
   {
     title: { type: String, required: true, maxLength: 64 },
-    authorId: { type: Schema.Types.ObjectId, ref: 'User', required: true },
+    author: { type: Schema.Types.ObjectId, ref: 'User', required: true },
     content: { type: String, required: true },
     published: { type: Boolean },
   },
@@ -13,7 +13,6 @@ const PostSchema = new Schema(
 );
 
 PostSchema.virtual('url').get(function () {
-  // TODO: remove id from url
   return `/posts/${this._id}`;
 });
 
