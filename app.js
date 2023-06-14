@@ -6,14 +6,16 @@ import logger from 'morgan';
 import cors from 'cors';
 import passport from 'passport';
 
-import fileDirName from './utils/fileDirName.js';
-
+// Routers
 import indexRouter from './routes/index.js';
 import apiRouter from './routes/api.js';
 
-import './config/database.js';
+// Utils
+import fileDirName from './utils/fileDirName.js';
+
+// Config
 import passportConfig from './config/passport.js';
-import 'dotenv/config';
+import './config/database.js';
 // import './utils/generateKeypair.js';
 
 const { __dirname } = fileDirName(import.meta);

@@ -1,21 +1,19 @@
-import fs from 'fs';
-import path from 'path';
-import jwt from 'jsonwebtoken';
+import bcrypt from 'bcryptjs';
 import { Strategy as JwtStrategy, ExtractJwt } from 'passport-jwt';
 import { Strategy as LocalStrategy } from 'passport-local';
-import fileDirName from '../utils/fileDirName.js';
-import User from '../models/user.js';
-import bcrypt from 'bcryptjs';
 
-const { __dirname } = fileDirName(import.meta);
+import User from '../models/user.js';
 
 /* Local Verification */
+
 const localVerify = async (username, password, done) => {
   try {
     const user = await User.findOne({ username: username });
+
     if (!user) {
       return done(null, false, { message: 'Incorrect username' });
     }
+
     bcrypt.compare(password, user.password, (err, res) => {
       if (res) {
         // passwords match! log user in
@@ -32,12 +30,9 @@ const localVerify = async (username, password, done) => {
 
 /* JWT Verification */
 
-const pathToKey = path.join(__dirname, '..', 'id_rsa_pub.pem');
-const PUB_KEY = fs.readFileSync(pathToKey, 'utf8');
-
 const opts = {};
 opts.jwtFromRequest = ExtractJwt.fromAuthHeaderAsBearerToken();
-opts.secretOrKey = PUB_KEY;
+opts.secretOrKey = process.env.JWT_PUBLIC_KEY;
 opts.algorithms = ['RS256'];
 
 const jwtVerify = async (token, done) => {

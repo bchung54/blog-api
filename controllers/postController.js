@@ -1,17 +1,20 @@
 import asyncHandler from 'express-async-handler';
 import { body, validationResult } from 'express-validator';
-import Post from '../models/post.js';
+
 import Comment from '../models/comment.js';
+import Post from '../models/post.js';
 
 // GET '/api/posts'
 export const get_post_list = asyncHandler(async (req, res, next) => {
   const allPosts = await Post.find({}).populate('author', 'name email').exec();
+
   return res.status(200).json({ posts: allPosts });
 });
 
 // DELETE '/api/posts'
 export const delete_post_list = asyncHandler(async (req, res, next) => {
   const deleted = await Post.deleteMany({});
+
   return res
     .status(200)
     .json({ message: `${deleted.deletedCount} post(s) have been deleted.` });
@@ -21,11 +24,12 @@ export const delete_post_list = asyncHandler(async (req, res, next) => {
 export const get_post = asyncHandler(async (req, res, next) => {
   try {
     const post = await Post.findById(req.params.postid).exec();
+
     if (post === null) {
       return res.status(404).json({ error: 'No post found.' });
-    } else {
-      return res.status(200).json({ post: post });
     }
+
+    return res.status(200).json({ post: post });
   } catch (err) {
     return res.status(404).json({ error: err });
   }
@@ -64,18 +68,20 @@ export const create_post = [
             'Post with same title already exists. Change title or revise existing post.',
           post: posts,
         });
-      } else {
-        const post = new Post({
-          title: req.body.title,
-          author: req.user._id,
-          content: req.body.content,
-          published: req.body.published,
-        });
-        await post.save();
-        return res
-          .status(200)
-          .json({ message: `Post successful. Title: ${req.body.title}` });
       }
+
+      const post = new Post({
+        title: req.body.title,
+        author: req.user._id,
+        content: req.body.content,
+        published: req.body.published,
+      });
+
+      await post.save();
+
+      return res
+        .status(200)
+        .json({ message: `Post successful. Title: ${req.body.title}` });
     } catch (err) {
       return res.status(404).json({ error: err });
     }
@@ -146,6 +152,7 @@ export const update_post = [
       });
 
       await Post.findByIdAndUpdate(req.params.postid, updatedPost, {});
+
       return res.status(200).json({
         message: `Post: ${req.body.title} updated successfully.`,
         post: updatedPost,

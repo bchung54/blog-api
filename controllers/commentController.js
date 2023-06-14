@@ -1,15 +1,17 @@
 import asyncHandler from 'express-async-handler';
 import { body, validationResult } from 'express-validator';
+
 import Comment from '../models/comment.js';
 import Post from '../models/post.js';
 
-// GET '/posts/:postid/comments'
+// GET '/api/posts/:postid/comments'
 export const get_comment_list = asyncHandler(async (req, res, next) => {
   try {
     const comments = await Comment.find({ post: req.params.postid })
       .sort({ createdAt: -1 })
       .populate('post')
       .exec();
+
     return res.status(200).json({
       postTitle:
         comments.length > 0 ? comments[0].post.title : 'No comments found.',
@@ -20,43 +22,45 @@ export const get_comment_list = asyncHandler(async (req, res, next) => {
   }
 });
 
-// DELETE '/posts/:postid/comments'
+// DELETE '/api/posts/:postid/comments'
 export const delete_comment_list = asyncHandler(async (req, res, next) => {
   try {
     const [deleted, post] = await Promise.all([
       Comment.deleteMany({ post: req.params.postid }),
       Post.findById(req.params.postid).exec(),
     ]);
+
     if (post === null) {
       return res.status(404).json({ error: 'No post found.' });
-    } else {
-      return res.status(200).json({
-        message: `${deleted.deletedCount} comment(s) have been deleted.`,
-      });
     }
+
+    return res.status(200).json({
+      message: `${deleted.deletedCount} comment(s) have been deleted.`,
+    });
   } catch (err) {
-    return res.status(400).json({ error: err });
+    return res.status(404).json({ error: err });
   }
 });
 
-// GET '/posts/:postid/comments/:commentid'
+// GET '/api/posts/:postid/comments/:commentid'
 export const get_comment = asyncHandler(async (req, res, next) => {
   try {
     const comments = await Comment.find({ post: req.params.postid })
       .sort({ createdAt: -1 })
       .populate('post')
       .exec();
+
     return res.status(200).json({
       postTitle:
         comments.length > 0 ? comments[0].post.title : 'No comments found.',
       comments: comments,
     });
   } catch (err) {
-    return res.status(400).json({ error: err });
+    return res.status(404).json({ error: err });
   }
 });
 
-// POST '/posts/:postid/comments'
+// POST '/api/posts/:postid/comments'
 export const create_comment = [
   body('author')
     .notEmpty()
@@ -122,7 +126,7 @@ export const create_comment = [
   }),
 ];
 
-// DELETE '/posts/:postid/comments/:commentid'
+// DELETE '/api/posts/:postid/comments/:commentid'
 export const delete_comment = asyncHandler(async (req, res, next) => {
   try {
     const deletedComment = await Comment.findOneAndDelete({
@@ -144,7 +148,7 @@ export const delete_comment = asyncHandler(async (req, res, next) => {
   }
 });
 
-// PUT '/posts/:postid/comments/:commentid'
+// PUT '/api/posts/:postid/comments/:commentid'
 export const update_comment = [
   body('author')
     .notEmpty()
@@ -199,6 +203,7 @@ export const update_comment = [
       });
 
       await Comment.findByIdAndUpdate(comment._id, updatedComment, {});
+
       return res
         .status(200)
         .json({ message: `Comment updated. Content: ${req.body.content}` });

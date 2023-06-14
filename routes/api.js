@@ -10,12 +10,13 @@ const router = Router();
 // Get all users.
 router.get('/users', userController.get_users_list);
 
-// Get all posts from single user.
-router.get('/users/:username/posts', userController.get_user_posts);
-
 // Get single user.
 router.get('/users/:username', userController.get_user);
 
+// Get all posts from single user.
+router.get('/users/:username/posts', userController.get_user_posts);
+
+/* User Routes Protected */
 // Delete single user. For users only.
 router.delete(
   '/users/:username',
@@ -35,16 +36,10 @@ router.put(
 // Get all posts.
 router.get('/posts', postController.get_post_list);
 
-// Delete all posts. For users only.
-router.delete(
-  '/posts',
-  passport.authenticate('jwt', { session: false }),
-  postController.delete_post_list
-);
-
 // Get single post.
 router.get('/posts/:postid', postController.get_post);
 
+/* Post Routes Protected */
 // Create single post. For users only.
 router.post(
   '/posts',
@@ -66,17 +61,17 @@ router.put(
   postController.update_post
 );
 
+// Delete all posts. For users only.
+router.delete(
+  '/posts',
+  passport.authenticate('jwt', { session: false }),
+  postController.delete_post_list
+);
+
 /* Comment Routes */
 
 // Get all comments.
 router.get('/posts/:postid/comments', commentController.get_comment_list);
-
-// Delete all comments. For users only.
-router.delete(
-  '/posts/:postid/comments',
-  passport.authenticate('jwt', { session: false }),
-  commentController.delete_comment_list
-);
 
 // Get single comment.
 router.get('/posts/:postid/comments/:commentid', commentController.get_comment);
@@ -84,6 +79,7 @@ router.get('/posts/:postid/comments/:commentid', commentController.get_comment);
 // Create single comment.
 router.post('/posts/:postid/comments', commentController.create_comment);
 
+/* Comment Routes Protected */
 // Delete single comment. For users only.
 router.delete(
   '/posts/:postid/comments/:commentid',
@@ -96,6 +92,13 @@ router.put(
   '/posts/:postid/comments/:commentid',
   passport.authenticate('jwt', { session: false }),
   commentController.update_comment
+);
+
+// Delete all comments. For users only.
+router.delete(
+  '/posts/:postid/comments',
+  passport.authenticate('jwt', { session: false }),
+  commentController.delete_comment_list
 );
 
 export default router;

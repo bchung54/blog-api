@@ -1,17 +1,11 @@
-import User from '../models/user.js';
 import bcrypt from 'bcryptjs';
-import { body, validationResult } from 'express-validator';
-import fs from 'fs';
-import path from 'path';
-import fileDirName from '../utils/fileDirName.js';
-
-const { __dirname } = fileDirName(import.meta);
-
 import asyncHandler from 'express-async-handler';
+import { body, validationResult } from 'express-validator';
 import jwt from 'jsonwebtoken';
 
-const pathToKey = path.join(__dirname, '..', 'id_rsa_priv.pem');
-const PRIV_KEY = fs.readFileSync(pathToKey, 'utf8');
+import User from '../models/user.js';
+
+import 'dotenv/config';
 
 // Protected route
 export const protectedRoute = (req, res, next) => {
@@ -108,7 +102,8 @@ export const login = (req, res, next) => {
     username: req.user.username,
     name: req.user.name,
   };
-  const token = jwt.sign({ user: body }, PRIV_KEY, {
+
+  const token = jwt.sign({ user: body }, process.env.JWT_PRIVATE_KEY, {
     algorithm: 'RS256',
     expiresIn: '1d',
   });

@@ -9,6 +9,7 @@ export const get_users_list = asyncHandler(async (req, res, next) => {
     {},
     { name: 1, username: 1, email: 1, _id: 0 }
   ).exec();
+
   return res.status(200).json({ users: users });
 });
 
@@ -18,9 +19,11 @@ export const get_user = asyncHandler(async (req, res, next) => {
     { username: req.params.username },
     { name: 1, username: 1, email: 1, _id: 0 }
   ).exec();
+
   if (user === null) {
     return res.status(404).json({ error: 'User not found.' });
   }
+
   return res.status(200).json({ user: user });
 });
 
@@ -29,9 +32,11 @@ export const delete_user = asyncHandler(async (req, res, next) => {
   const deletedUser = await User.findOneAndDelete({
     username: req.params.username,
   });
+
   if (deletedUser === null) {
     return res.status(404).json({ error: 'User not found.' });
   }
+
   return res
     .status(200)
     .json({ message: `${req.params.username} has been successfully deleted.` });
@@ -51,7 +56,6 @@ export const update_user = [
     .trim(),
 
   asyncHandler(async (req, res, next) => {
-    // Extract the validation errors from a request.
     const errors = validationResult(req);
 
     if (!errors.isEmpty()) {
@@ -85,6 +89,7 @@ export const update_user = [
       });
 
       await User.findByIdAndUpdate(user._id, updatedUser, {});
+
       return res
         .status(200)
         .json({ message: `User: ${user.username} updated successfully.` });
@@ -97,21 +102,27 @@ export const update_user = [
 // GET '/api/users/:username/posts'
 export const get_user_posts = asyncHandler(async (req, res, next) => {
   const user = await User.findOne({ username: req.params.username }).exec();
+
   if (user === null) {
     return res.status(204).json({ message: 'User not found.' });
   }
 
-  const allPostsByUser = await Post.find({
-    author: user._id,
-  }).exec();
-  if (allPostsByUser && allPostsByUser.length > 0) {
-    return res.status(200).json({
-      message: `All posts by ${user.username}`,
-      posts: allPostsByUser,
-    });
-  } else {
+  try {
+    const allPostsByUser = await Post.find({
+      author: user._id,
+    }).exec();
+
+    if (allPostsByUser && allPostsByUser.length > 0) {
+      return res.status(200).json({
+        message: `All posts by ${user.username}`,
+        posts: allPostsByUser,
+      });
+    }
+
     return res
       .status(200)
       .json({ message: `No posts made yet by ${user.username}` });
+  } catch (err) {
+    return res.status(404).json({ error: err });
   }
 });
