@@ -5,26 +5,34 @@ import Post from '../models/post.js';
 
 // GET '/api/users'
 export const get_users_list = asyncHandler(async (req, res, next) => {
-  const users = await User.find(
-    {},
-    { name: 1, username: 1, email: 1, _id: 0 }
-  ).exec();
+  try {
+    const users = await User.find(
+      {},
+      { name: 1, username: 1, email: 1, _id: 0 }
+    ).exec();
 
-  return res.status(200).json({ users: users });
+    return res.json(users);
+  } catch (err) {
+    return re.status(500).json({ message: err.message });
+  }
 });
 
 // GET '/api/users/:username'
 export const get_user = asyncHandler(async (req, res, next) => {
-  const user = await User.findOne(
-    { username: req.params.username },
-    { name: 1, username: 1, email: 1, _id: 0 }
-  ).exec();
+  try {
+    const user = await User.findOne(
+      { username: req.params.username },
+      { name: 1, username: 1, email: 1, _id: 0 }
+    ).exec();
 
-  if (user === null) {
-    return res.status(404).json({ error: 'User not found.' });
+    if (user === null) {
+      return res.status(404).json({ message: 'User not found.' });
+    }
+
+    return res.json(user);
+  } catch (err) {
+    return re.status(500).json({ message: err.message });
   }
-
-  return res.status(200).json({ user: user });
 });
 
 // DELETE '/api/users/:username'
@@ -34,12 +42,12 @@ export const delete_user = asyncHandler(async (req, res, next) => {
   });
 
   if (deletedUser === null) {
-    return res.status(404).json({ error: 'User not found.' });
+    return res.status(404).json({ message: 'User not found.' });
   }
 
-  return res
-    .status(200)
-    .json({ message: `${req.params.username} has been successfully deleted.` });
+  return res.json({
+    message: `${req.params.username} account has been successfully deleted.`,
+  });
 });
 
 // PUT '/api/users/:username'

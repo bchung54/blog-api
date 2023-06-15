@@ -1,5 +1,6 @@
 import asyncHandler from 'express-async-handler';
 import { body, validationResult } from 'express-validator';
+import { isValidObjectId } from 'mongoose';
 
 import Comment from '../models/comment.js';
 import Post from '../models/post.js';
@@ -7,25 +8,22 @@ import Post from '../models/post.js';
 // GET '/api/posts/:postid/comments'
 export const get_comment_list = asyncHandler(async (req, res, next) => {
   try {
+    // If no post, comments will be empty array.
     const comments = await Comment.find({ post: req.params.postid })
       .sort({ createdAt: -1 })
       .populate('post')
       .exec();
 
-    return res.status(200).json({
-      postTitle:
-        comments.length > 0 ? comments[0].post.title : 'No comments found.',
-      comments: comments,
-    });
+    return res.json(comments);
   } catch (err) {
-    return res.status(400).json({ error: err });
+    return res.status(500).json({ message: err.message });
   }
 });
 
 // DELETE '/api/posts/:postid/comments'
 export const delete_comment_list = asyncHandler(async (req, res, next) => {
   try {
-    const [deleted, post] = await Promise.all([
+    const [deletedComments, post] = await Promise.all([
       Comment.deleteMany({ post: req.params.postid }),
       Post.findById(req.params.postid).exec(),
     ]);
@@ -34,29 +32,28 @@ export const delete_comment_list = asyncHandler(async (req, res, next) => {
       return res.status(404).json({ error: 'No post found.' });
     }
 
-    return res.status(200).json({
-      message: `${deleted.deletedCount} comment(s) have been deleted.`,
+    return res.json({
+      message: `${deletedComments.deletedCount} comment(s) have been deleted.`,
     });
   } catch (err) {
-    return res.status(404).json({ error: err });
+    return res.status(500).json({ message: err.message });
   }
 });
 
 // GET '/api/posts/:postid/comments/:commentid'
 export const get_comment = asyncHandler(async (req, res, next) => {
   try {
-    const comments = await Comment.find({ post: req.params.postid })
-      .sort({ createdAt: -1 })
-      .populate('post')
-      .exec();
+    const comment = await Comment.findOneById(req.params.commentid).exec();
 
-    return res.status(200).json({
-      postTitle:
-        comments.length > 0 ? comments[0].post.title : 'No comments found.',
-      comments: comments,
-    });
+    if (comment.post !== req.params.postid) {
+      return res.status(404).json({
+        message: 'Invalid URL. Comment does not belong to specified post.',
+      });
+    }
+
+    return res.json(comment);
   } catch (err) {
-    return res.status(404).json({ error: err });
+    return res.status(500).json({ message: err.message });
   }
 });
 
@@ -105,23 +102,21 @@ export const create_comment = [
 
       if (duplicateComments.length > 0) {
         return res.status(400).json({
-          error: 'This user by email has already posted this same comment.',
+          message: 'This user by email has already posted this same comment.',
         });
       }
 
-      const newComment = new Comment({
+      const comment = new Comment({
         post: req.params.postid,
         author: req.body.author,
         email: req.body.email,
         content: req.body.content,
       });
 
-      await newComment.save();
-      return res
-        .status(200)
-        .json({ message: `Comment posted. Content: ${req.body.content}` });
+      const newComment = await comment.save();
+      return res.status(201).json(newComment);
     } catch (err) {
-      return res.status(404).json({ error: err });
+      return res.status(500).json({ message: err.message });
     }
   }),
 ];
@@ -135,16 +130,14 @@ export const delete_comment = asyncHandler(async (req, res, next) => {
     });
 
     if (deletedComment === null) {
-      return res
-        .status(404)
-        .json({ error: 'Comment does not exist. Nothing to delete.' });
+      return res.status(404).json({ error: 'Comment not found.' });
     }
 
-    return res.status(200).json({
-      message: `Comment: '${deletedComment.content}' successfully deleted.`,
+    return res.json({
+      message: 'Comment successfully deleted.',
     });
   } catch (err) {
-    return res.status(404).json({ error: err });
+    return res.status(500).json({ message: err.message });
   }
 });
 
@@ -178,8 +171,8 @@ export const update_comment = [
 
     try {
       const [post, comment] = await Promise.all([
-        Post.findById(req.params.postid).exec(),
-        Comment.findById(req.params.commentid).exec(),
+        Post.findOneById(req.params.postid).exec(),
+        Comment.findOneById(req.params.commentid).exec(),
       ]);
 
       if (post === null) {
@@ -204,11 +197,9 @@ export const update_comment = [
 
       await Comment.findByIdAndUpdate(comment._id, updatedComment, {});
 
-      return res
-        .status(200)
-        .json({ message: `Comment updated. Content: ${req.body.content}` });
+      return res.json(updatedComment);
     } catch (err) {
-      return res.status(404).json({ error: err });
+      return res.status(500).json({ message: err.message });
     }
   }),
 ];

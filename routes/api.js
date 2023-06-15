@@ -3,6 +3,7 @@ import passport from 'passport';
 import * as postController from '../controllers/postController.js';
 import * as commentController from '../controllers/commentController.js';
 import * as userController from '../controllers/userController.js';
+import validateObjectId from '../utils/validateObjectId.js';
 const router = Router();
 
 /* User Routes */
@@ -37,7 +38,7 @@ router.put(
 router.get('/posts', postController.get_post_list);
 
 // Get single post.
-router.get('/posts/:postid', postController.get_post);
+router.get('/posts/:postid', validateObjectId, postController.get_post);
 
 /* Post Routes Protected */
 // Create single post. For users only.
@@ -51,6 +52,7 @@ router.post(
 router.delete(
   '/posts/:postid',
   passport.authenticate('jwt', { session: false }),
+  validateObjectId,
   postController.delete_post
 );
 
@@ -58,6 +60,7 @@ router.delete(
 router.put(
   '/posts/:postid',
   passport.authenticate('jwt', { session: false }),
+  validateObjectId,
   postController.update_post
 );
 
@@ -71,19 +74,32 @@ router.delete(
 /* Comment Routes */
 
 // Get all comments.
-router.get('/posts/:postid/comments', commentController.get_comment_list);
+router.get(
+  '/posts/:postid/comments',
+  validateObjectId,
+  commentController.get_comment_list
+);
 
 // Get single comment.
-router.get('/posts/:postid/comments/:commentid', commentController.get_comment);
+router.get(
+  '/posts/:postid/comments/:commentid',
+  validateObjectId,
+  commentController.get_comment
+);
 
 // Create single comment.
-router.post('/posts/:postid/comments', commentController.create_comment);
+router.post(
+  '/posts/:postid/comments',
+  validateObjectId,
+  commentController.create_comment
+);
 
 /* Comment Routes Protected */
 // Delete single comment. For users only.
 router.delete(
   '/posts/:postid/comments/:commentid',
   passport.authenticate('jwt', { session: false }),
+  validateObjectId,
   commentController.delete_comment
 );
 
@@ -91,6 +107,7 @@ router.delete(
 router.put(
   '/posts/:postid/comments/:commentid',
   passport.authenticate('jwt', { session: false }),
+  validateObjectId,
   commentController.update_comment
 );
 
@@ -98,6 +115,7 @@ router.put(
 router.delete(
   '/posts/:postid/comments',
   passport.authenticate('jwt', { session: false }),
+  validateObjectId,
   commentController.delete_comment_list
 );
 

@@ -6,18 +6,28 @@ import Post from '../models/post.js';
 
 // GET '/api/posts'
 export const get_post_list = asyncHandler(async (req, res, next) => {
-  const allPosts = await Post.find({}).populate('author', 'name email').exec();
+  try {
+    const allPosts = await Post.find({})
+      .populate('author', 'name email')
+      .exec();
 
-  return res.status(200).json({ posts: allPosts });
+    return res.json(allPosts);
+  } catch (err) {
+    return res.status(500).json({ message: err.message });
+  }
 });
 
 // DELETE '/api/posts'
 export const delete_post_list = asyncHandler(async (req, res, next) => {
-  const deleted = await Post.deleteMany({});
+  try {
+    const deleted = await Post.deleteMany({});
 
-  return res
-    .status(200)
-    .json({ message: `${deleted.deletedCount} post(s) have been deleted.` });
+    return res.json({
+      message: `${deleted.deletedCount} post(s) have been deleted.`,
+    });
+  } catch (err) {
+    return res.status(500).json({ message: err.message });
+  }
 });
 
 // GET '/api/posts/:postid'
@@ -26,12 +36,12 @@ export const get_post = asyncHandler(async (req, res, next) => {
     const post = await Post.findById(req.params.postid).exec();
 
     if (post === null) {
-      return res.status(404).json({ error: 'No post found.' });
+      return res.status(404).json({ message: 'No post found.' });
     }
 
-    return res.status(200).json({ post: post });
+    return res.json({ post: post });
   } catch (err) {
-    return res.status(404).json({ error: err });
+    return res.status(500).json({ message: err.message });
   }
 });
 
@@ -64,26 +74,24 @@ export const create_post = [
 
       if (posts.length > 0) {
         return res.status(400).json({
-          error:
+          message:
             'Post with same title already exists. Change title or revise existing post.',
           post: posts,
         });
       }
 
-      const post = new Post({
+      const newPost = new Post({
         title: req.body.title,
         author: req.user._id,
         content: req.body.content,
         published: req.body.published,
       });
 
-      await post.save();
+      await newPost.save();
 
-      return res
-        .status(200)
-        .json({ message: `Post successful. Title: ${req.body.title}` });
+      return res.status(201).json(newPost);
     } catch (err) {
-      return res.status(404).json({ error: err });
+      return res.status(500).json({ message: err.message });
     }
   }),
 ];
@@ -99,14 +107,14 @@ export const delete_post = asyncHandler(async (req, res, next) => {
     if (deletedPost === null) {
       return res
         .status(404)
-        .json({ error: 'Post not found. Nothing to delete.' });
+        .json({ message: 'Post not found. Nothing to delete.' });
     }
 
-    return res
-      .status(200)
-      .json({ message: `${deletedPost.title} has been successfully deleted.` });
+    return res.json({
+      message: `${deletedPost.title} has been successfully deleted.`,
+    });
   } catch (err) {
-    return res.status(404).json({ error: err });
+    return res.status(500).json({ message: err.message });
   }
 });
 
@@ -138,9 +146,9 @@ export const update_post = [
       ]);
 
       if (post.title !== req.body.title && duplicateTitlePosts.length > 0) {
-        return res
-          .status(400)
-          .json({ error: 'This user already has a post with the same title.' });
+        return res.status(400).json({
+          message: 'This user already has a post with the same title.',
+        });
       }
 
       const updatedPost = new Post({
@@ -153,12 +161,9 @@ export const update_post = [
 
       await Post.findByIdAndUpdate(req.params.postid, updatedPost, {});
 
-      return res.status(200).json({
-        message: `Post: ${req.body.title} updated successfully.`,
-        post: updatedPost,
-      });
+      return res.json(updatedPost);
     } catch (err) {
-      return res.status(404).json({ error: err });
+      return res.status(500).json({ message: err.message });
     }
   }),
 ];

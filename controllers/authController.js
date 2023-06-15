@@ -9,7 +9,7 @@ import 'dotenv/config';
 
 // Protected route
 export const protectedRoute = (req, res, next) => {
-  res.status(200).json({ success: true, message: 'You are authorized' });
+  res.json({ success: true, message: 'You are authorized' });
 };
 
 // POST '/signup'
@@ -79,8 +79,9 @@ export const signup = [
             email: req.body.email,
             password: hashedPassword,
           });
+
           await user.save();
-          res.status(200).json({ message: 'User created successfully' });
+          res.json({ message: 'User created successfully' });
         } catch (err) {
           return next(err);
         }
@@ -91,10 +92,6 @@ export const signup = [
 
 // POST '/login'
 export const login = (req, res, next) => {
-  if (!req.user) {
-    return res.status(403).json({ info });
-  }
-
   req.login(req.user, { session: false });
 
   const body = {
@@ -108,7 +105,7 @@ export const login = (req, res, next) => {
     expiresIn: '1d',
   });
 
-  return res.status(200).json({ body, token });
+  return res.json({ body, token });
 };
 
 // GET '/logout'
